@@ -60,7 +60,10 @@ class Stub(_TestDouble):
 
     def _expectation_value(self, attr, args=[], kargs={}):
         for position, (attr_expectation, args_expectation, kargs_expectation, response) in enumerate(self.__expectation__):
-            if (attr_expectation, args_expectation, kargs_expectation) == (attr, args, kargs):
+            if kargs_expectation.get("ignore_signature", False) and (attr_expectation) == (attr):
+                self._to_the_end(position)
+                return response
+            elif (attr_expectation, args_expectation, kargs_expectation) == (attr, args, kargs):
                 self._to_the_end(position)
                 return response
         if self._has_proxy():

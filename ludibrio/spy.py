@@ -1,16 +1,22 @@
 from ludibrio import Stub
 from ludibrio.helpers import format_called
 
-
 class Spy(Stub):
 
     __calls__ = []
-
+    __last_call__ = {}
     def _expectation_value(self, attr, args=[], kargs={}):
         self.__calls__.append([attr, args, kargs])
         for position, (attr_expectation, args_expectation, kargs_expectation, response) in enumerate(self.__expectation__):
-            if (attr_expectation, args_expectation, kargs_expectation) == (attr, args, kargs):
+            if kargs_expectation.get("ignore_signature", False) and (attr_expectation) == (attr):
                 self._to_the_end(position)
+                self.__last_call__['args'] = args
+                self.__last_call__['kargs'] = kargs
+                return response
+            elif (attr_expectation, args_expectation, kargs_expectation) == (attr, args, kargs):
+                self._to_the_end(position)
+                self.__last_call__['args'] = args
+                self.__last_call__['kargs'] = kargs
                 return response
         if self._has_proxy():
             return self._proxy(attr, args, kargs)
@@ -19,7 +25,16 @@ class Spy(Stub):
     def __repr__(self):
         return 'Spy Object'
     
-        
+    def check_arg_value(self, value, index):
+        args = self.__last_call__.get("args", [])
+        if index is not None and index < len(args):
+            return True if args[index] == value else False
+        return False
+    
+    def check_karg_value(self, key, value):
+        kargs = self.__last_call__.get('kargs', {})
+        return True if kargs.get(key, None) == value else False
+    
     def called_count(self, expectation):
         count = 0
         for call in self.__calls__:

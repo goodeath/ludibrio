@@ -25,15 +25,15 @@ class Spy(Stub):
     def __repr__(self):
         return 'Spy Object'
     
-    def check_arg_value(self, value, index):
+    def arg_value(self, index):
         args = self.__last_call__.get("args", [])
         if index is not None and index < len(args):
-            return True if args[index] == value else False
-        return False
+            return args[index]
+        return None
     
-    def check_karg_value(self, key, value):
+    def karg_value(self, key):
         kargs = self.__last_call__.get('kargs', {})
-        return True if kargs.get(key, None) == value else False
+        return kargs.get(key, None)
     
     def called_count(self, expectation):
         count = 0
